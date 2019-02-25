@@ -42,6 +42,17 @@ public:
     void loadKernelsFromFile(char *filename);
     bool checkAvailable(){return deviceAvailable;}
 
+    int createBuffer(std::string name, size_t size);
+    int writeBuffer(std::string name, size_t size, void *data);
+    int readBuffer(std::string name, size_t size, void *data);
+
+    int addKernel();
+    int setKernelArg();
+    int enqueueNDRangeKernel(std::string kernelName);
+    void printKernels();
+
+
+
     cl_device_id id;
 
     cl_program program;
@@ -56,6 +67,10 @@ public:
     cl_uint deviceMaxComputeUnits;
     char deviceName[156];
     char deviceVendor[156];
+
+    std::map<std::string, cl_mem> buffers;
+
+    std::map<std::string, cl_kernel> kernels;
 };
 
 class clPlatform{

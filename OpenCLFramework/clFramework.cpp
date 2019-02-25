@@ -3,6 +3,8 @@
 /*Buffer Functions*/
 
 
+
+
 /*Kernel Functions*/
 
 
@@ -61,6 +63,13 @@ void clDevice::loadKernelsFromFile(char *filename){
     err |= clBuildProgram(this->program, 1, &(this->id), NULL, NULL, NULL);
 
     delete[] source_str;
+}
+
+int clDevice::createBuffer(std::string name, size_t size){
+    cl_int err;
+    this->buffers.insert(std::pair<std::string, cl_mem>(name, clCreateBuffer(this->context, CL_MEM_READ_WRITE, size, NULL, &err)));
+    printf("%d\n", err);
+    return (int)err;
 }
 
 
