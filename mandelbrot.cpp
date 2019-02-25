@@ -2,7 +2,7 @@
 #include <fstream>
 #include <complex>
 #include <unistd.h>
-#include "clFramework.h"
+#include "OpenCLFramework/clFramework.h"
 #include "mandelbrotUtils.h"
 
 using namespace std;
@@ -51,13 +51,13 @@ int main(){
     clInfo *cli = new clInfo;
     cli->loadKernelsFromFile("kernels/mandelbrot.cl");
 
-    clDevice device = cli->clPlatforms[0].clDevices[0];
+    clDevice *device = cli->getFirstAvailableDevice();
 
-    cl_mem retBuffer = clCreateBuffer(device.context, CL_MEM_READ_WRITE, size * sizeof(int), NULL, &err);
-    cl_mem _WINDOW = clCreateBuffer(device.context, CL_MEM_READ_WRITE, 4 * sizeof(int), NULL, &err);
-    cl_mem _FRAME = clCreateBuffer(device.context, CL_MEM_READ_WRITE, 4 * sizeof(double), NULL, &err);
+    cl_mem retBuffer = clCreateBuffer(device->context, CL_MEM_READ_WRITE, size * sizeof(int), NULL, &err);
+    cl_mem _WINDOW = clCreateBuffer(device->context, CL_MEM_READ_WRITE, 4 * sizeof(int), NULL, &err);
+    cl_mem _FRAME = clCreateBuffer(device->context, CL_MEM_READ_WRITE, 4 * sizeof(double), NULL, &err);
 
-    cl_kernel valueKern = clCreateKernel(device.program, "value", &err);
+    cl_kernel valueKern = clCreateKernel(device->program, "value", &err);
     err = clSetKernelArg(valueKern, 0, sizeof(cl_mem), (void*)&retBuffer);
     err = clSetKernelArg(valueKern, 1, sizeof(cl_mem), (void*)&_WINDOW);
     err = clSetKernelArg(valueKern, 2, sizeof(cl_mem), (void*)&_FRAME);
@@ -81,8 +81,8 @@ int main(){
             
         
         /*START GPU CODE*/
-        clEnqueueWriteBuffer(device.commandQueue, _WINDOW, CL_TRUE, 0, 4 * sizeof(int),  WINDOW, 0, NULL, NULL);
-        clEnqueueWriteBuffer(device.commandQueue, _FRAME, CL_TRUE, 0, 4 * sizeof(double),  FRAME, 0, NULL, NULL);
+        clEnqueueWriteBuffer(device->commandQueue, _WINDOW, CL_TRUE, 0, 4 * sizeof(int),  WINDOW, 0, NULL, NULL);
+        clEnqueueWriteBuffer(device->commandQueue, _FRAME, CL_TRUE, 0, 4 * sizeof(double),  FRAME, 0, NULL, NULL);
         err = clSetKernelArg(valueKern, 4, sizeof(cl_int), (void*)&MAX_ITER);
 
         ofstream myImage("mandelbrotGPU.ppm");
@@ -98,16 +98,16 @@ int main(){
             myImage << "P3\n" << (int)WIDTH << " " << (int)HEIGHT << " 255\n";
 
             /* Launch runs on GPU */
-            err = clEnqueueNDRangeKernel(device.commandQueue, valueKern, 1, 0, global, local, 0, NULL, &ev);
+            err = clEnqueueNDRangeKernel(device->commandQueue, valueKern, 1, 0, global, local, 0, NULL, &ev);
             if (err != CL_SUCCESS)
                 return err;
             clWaitForEvents(1, &ev);
 
-            clFlush(device.commandQueue);
-            clFinish(device.commandQueue);
+            clFlush(device->commandQueue);
+            clFinish(device->commandQueue);
 
             /* Copy results from the memory buffer */
-            err = clEnqueueReadBuffer(device.commandQueue, retBuffer, CL_TRUE, 0, size * sizeof(int), retMem, 0, NULL, NULL);
+            err = clEnqueueReadBuffer(device->commandQueue, retBuffer, CL_TRUE, 0, size * sizeof(int), retMem, 0, NULL, NULL);
             for(int i = 0; i < size; ++i){
                 myImage << 0 << ' ' << retMem[i]/2 << ' ' << retMem[i] << "\n";
             }

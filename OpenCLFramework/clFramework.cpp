@@ -1,5 +1,11 @@
 #include "clFramework.h"
 
+/*Buffer Functions*/
+
+
+/*Kernel Functions*/
+
+
 /*device functions*/
 void clDevice::initDevice(cl_device_id did){
     cl_int err;
@@ -28,6 +34,7 @@ void clDevice::printDeviceInfo(){
     printf("MAX COMPUTE UNITS:\t%d\n", this->deviceMaxComputeUnits);
     printf("MAX DEVICE THREADS:\t%d\n", this->deviceMaxComputeUnits * 64);
     printf("GLOBAL MEM SIZE:\t%ldMiB\n", this->deviceGlobalMemSize/(1024*1024));
+    printf("DEVICE AVAILABLE:\t%s\n", this->deviceAvailable ? "true" : "false");
     printf("-------------------------------------\n");
 }
 
@@ -114,6 +121,14 @@ void clPlatform::loadKernelsFromFile(char *filename){
     }
 }
 
+clDevice *clPlatform::getFirstAvailableDevice(){
+    for(int i = 0; i < this->numDevices; ++i){
+        if(this->clDevices[i].checkAvailable()){
+            return &(this->clDevices[i]);
+        }
+    }
+}
+
 
 
 
@@ -144,4 +159,14 @@ void clInfo::loadKernelsFromFile(char *filename){
     for(int i = 0; i < this->numPlatforms; ++i){
         this->clPlatforms[i].loadKernelsFromFile(filename);
     }
+}
+
+clDevice *clInfo::getFirstAvailableDevice(){
+    for(int i = 0; i < this->numPlatforms; ++i){
+        clDevice *foundDev = this->clPlatforms[i].getFirstAvailableDevice();
+        if(foundDev){
+            return foundDev;
+        }
+    }
+    return NULL;
 }

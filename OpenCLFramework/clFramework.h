@@ -11,6 +11,27 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <map>
+
+// template <typename T>;
+class clBuffers{
+    int createBuffer(std::string name, size_t size);
+    int writeBuffer(std::string name, size_t size, void *data);
+    int readBuffer(std::string name, size_t size, void *data);
+
+    std::map<std::string, cl_mem> buffers;
+};
+
+class clKernels{
+    /*Functions*/
+    int addKernel();
+    int setKernelArg();
+    int enqueueNDRangeKernel(std::string kernelName);
+    void printKernels();
+
+
+    std::map<std::string, cl_kernel> kernels;
+};
 
 class clDevice{
 public:
@@ -19,6 +40,7 @@ public:
     void initDevice(cl_device_id did);
     void printDeviceInfo();
     void loadKernelsFromFile(char *filename);
+    bool checkAvailable(){return deviceAvailable;}
 
     cl_device_id id;
 
@@ -43,7 +65,7 @@ public:
     void getDevices();
     void printPlatformInfo();
     void loadKernelsFromFile(char *filename);
-    // clDevice* getFirstAvailableDevice();
+    clDevice* getFirstAvailableDevice();
 
     cl_platform_id id;
     char platformProfile[156];
@@ -61,6 +83,7 @@ public:
     clInfo();
     void printInfo();
     void loadKernelsFromFile(char *filename);
+    clDevice *getFirstAvailableDevice();
 
     cl_platform_id *clPlatformIDs;
     cl_uint numPlatforms;
