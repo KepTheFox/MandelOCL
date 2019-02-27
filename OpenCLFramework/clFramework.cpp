@@ -68,10 +68,37 @@ void clDevice::loadKernelsFromFile(char *filename){
 int clDevice::createBuffer(std::string name, size_t size){
     cl_int err;
     this->buffers.insert(std::pair<std::string, cl_mem>(name, clCreateBuffer(this->context, CL_MEM_READ_WRITE, size, NULL, &err)));
-    printf("%d\n", err);
     return (int)err;
 }
 
+cl_mem *clDevice::getBuffer(std::string name){
+    return &(this->buffers[name]);
+}
+
+
+
+int clDevice::createKernel(char *name){
+    cl_int err;
+    this->kernels.insert(std::pair<char *, cl_kernel> (name, clCreateKernel(this->program, name, &err)));
+    return (int)err;
+}
+
+cl_kernel *clDevice::getKernel(char *name){
+    std::map<char *, cl_kernel>::iterator it = this->kernels.find(name);
+    if(it != this->kernels.end()){
+        return &(it->second);
+    }
+    else{
+        return NULL;
+    }
+}
+
+int clDevice::setKernelArg(char *kernelName, char *bufferName, int argNum){
+    cl_int err;
+    cl_kernel *kern = this->getKernel(kernelName);
+    err = clSetKernelArg(*kern, 0, sizeof(cl_mem), (void*)this->getBuffer(bufferName));
+    return (int)err;
+}
 
 
 

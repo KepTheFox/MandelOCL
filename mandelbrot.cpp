@@ -53,23 +53,28 @@ int main(){
 
     clDevice *device = cli->getFirstAvailableDevice();
 
+    device->createBuffer("_RETURN", size * sizeof(int));
+    device->createBuffer("_WINDOW", 4 * sizeof(int));
+    device->createBuffer("_FRAME", 4 * sizeof(double));
+
     cl_mem retBuffer = clCreateBuffer(device->context, CL_MEM_READ_WRITE, size * sizeof(int), NULL, &err);
     cl_mem _WINDOW = clCreateBuffer(device->context, CL_MEM_READ_WRITE, 4 * sizeof(int), NULL, &err);
     cl_mem _FRAME = clCreateBuffer(device->context, CL_MEM_READ_WRITE, 4 * sizeof(double), NULL, &err);
 
-    cl_kernel valueKern = clCreateKernel(device->program, "value", &err);
-    err = clSetKernelArg(valueKern, 0, sizeof(cl_mem), (void*)&retBuffer);
-    err = clSetKernelArg(valueKern, 1, sizeof(cl_mem), (void*)&_WINDOW);
-    err = clSetKernelArg(valueKern, 2, sizeof(cl_mem), (void*)&_FRAME);
-    err = clSetKernelArg(valueKern, 3, sizeof(cl_double), (void*)&ZOOM);
-
+    err = device->createKernel("value");
+    // cl_kernel valueKern = clCreateKernel(device->program, "value", &err);
+    err = clSetKernelArg(*(device->getKernel("value")), 0, sizeof(cl_mem), (void*)device->getBuffer("_RETURN"));
+    err = clSetKernelArg(*(device->getKernel("value")), 1, sizeof(cl_mem), (void*)device->getBuffer("_WINDOW"));
+    err = clSetKernelArg(*(device->getKernel("value")), 2, sizeof(cl_mem), (void*)device->getBuffer("_FRAME"));
+    err = clSetKernelArg(*(device->getKernel("value")), 3, sizeof(cl_double), (void*)&ZOOM);
+    printf("%d\n", err);
     Window<int> scr(0, 1200, 0, 1200);
     // Window<double> fract(-2.2, 1.2, -1.7, 1.7);
     Window<double> fract(-1, 1, -1, 1);
     
     fract.move(X, Y);
     fract.zoom(ZOOM);
-    while(fract.getZoom() < 65){
+    while(fract.getZoom() < 32){
         fract.zoom(2);
         // int err = runGPU(cli, scr, fract);
         // std::cout << "ZOOM LEVEL: " << fract.getZoom() << '\n';
@@ -81,9 +86,9 @@ int main(){
             
         
         /*START GPU CODE*/
-        clEnqueueWriteBuffer(device->commandQueue, _WINDOW, CL_TRUE, 0, 4 * sizeof(int),  WINDOW, 0, NULL, NULL);
-        clEnqueueWriteBuffer(device->commandQueue, _FRAME, CL_TRUE, 0, 4 * sizeof(double),  FRAME, 0, NULL, NULL);
-        err = clSetKernelArg(valueKern, 4, sizeof(cl_int), (void*)&MAX_ITER);
+        clEnqueueWriteBuffer(device->commandQueue, *(device->getBuffer("_WINDOW")), CL_TRUE, 0, 4 * sizeof(int),  WINDOW, 0, NULL, NULL);
+        clEnqueueWriteBuffer(device->commandQueue, *(device->getBuffer("_FRAME")), CL_TRUE, 0, 4 * sizeof(double),  FRAME, 0, NULL, NULL);
+        err = clSetKernelArg(*(device->getKernel("value")), 4, sizeof(cl_int), (void*)&MAX_ITER);
 
         ofstream myImage("mandelbrotGPU.ppm");
 
@@ -98,7 +103,7 @@ int main(){
             myImage << "P3\n" << (int)WIDTH << " " << (int)HEIGHT << " 255\n";
 
             /* Launch runs on GPU */
-            err = clEnqueueNDRangeKernel(device->commandQueue, valueKern, 1, 0, global, local, 0, NULL, &ev);
+            err = clEnqueueNDRangeKernel(device->commandQueue, *(device->getKernel("value")), 1, 0, global, local, 0, NULL, &ev);
             if (err != CL_SUCCESS)
                 return err;
             clWaitForEvents(1, &ev);
@@ -107,7 +112,7 @@ int main(){
             clFinish(device->commandQueue);
 
             /* Copy results from the memory buffer */
-            err = clEnqueueReadBuffer(device->commandQueue, retBuffer, CL_TRUE, 0, size * sizeof(int), retMem, 0, NULL, NULL);
+            err = clEnqueueReadBuffer(device->commandQueue, *(device->getBuffer("_RETURN")), CL_TRUE, 0, size * sizeof(int), retMem, 0, NULL, NULL);
             for(int i = 0; i < size; ++i){
                 myImage << 0 << ' ' << retMem[i]/2 << ' ' << retMem[i] << "\n";
             }
@@ -121,5 +126,6 @@ int main(){
         MAX_ITER += 30;
         sleep(3);
     }
+    printf("DONE\n");
     return 0;
 }

@@ -43,11 +43,13 @@ public:
     bool checkAvailable(){return deviceAvailable;}
 
     int createBuffer(std::string name, size_t size);
+    cl_mem *getBuffer(std::string name);
     int writeBuffer(std::string name, size_t size, void *data);
     int readBuffer(std::string name, size_t size, void *data);
 
-    int addKernel();
-    int setKernelArg();
+    int createKernel(char *name);
+    cl_kernel *getKernel(char *name);
+    int setKernelArg(char *kernelName, char *bufferName, int argNum);
     int enqueueNDRangeKernel(std::string kernelName);
     void printKernels();
 
@@ -70,7 +72,7 @@ public:
 
     std::map<std::string, cl_mem> buffers;
 
-    std::map<std::string, cl_kernel> kernels;
+    std::map<char *, cl_kernel> kernels;
 };
 
 class clPlatform{
