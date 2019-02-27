@@ -65,13 +65,13 @@ void clDevice::loadKernelsFromFile(char *filename){
     delete[] source_str;
 }
 
-int clDevice::createBuffer(std::string name, size_t size){
+int clDevice::createBuffer(char *name, size_t size){
     cl_int err;
-    this->buffers.insert(std::pair<std::string, cl_mem>(name, clCreateBuffer(this->context, CL_MEM_READ_WRITE, size, NULL, &err)));
+    this->buffers.insert(std::pair<char *, cl_mem>(name, clCreateBuffer(this->context, CL_MEM_READ_WRITE, size, NULL, &err)));
     return (int)err;
 }
 
-cl_mem *clDevice::getBuffer(std::string name){
+cl_mem *clDevice::getBuffer(char *name){
     return &(this->buffers[name]);
 }
 
@@ -99,6 +99,19 @@ int clDevice::setKernelArg(char *kernelName, char *bufferName, int argNum){
     err = clSetKernelArg(*kern, 0, sizeof(cl_mem), (void*)this->getBuffer(bufferName));
     return (int)err;
 }
+
+int clDevice::enqueueWriteBuffer(char *name, size_t size, void *data, bool blocking){
+    cl_int err;
+    err = clEnqueueWriteBuffer(this->commandQueue, *(this->getBuffer(name)), blocking, 0, size,  data, 0, NULL, NULL);
+    return err;
+}
+
+int clDevice::enqueueReadBuffer(char *name, size_t size, void *data, bool blocking){
+    cl_int err;
+    err = clEnqueueReadBuffer(this->commandQueue, *(this->getBuffer(name)), blocking, 0, size,  data, 0, NULL, NULL);
+    return err;
+}
+
 
 
 

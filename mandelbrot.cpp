@@ -57,10 +57,6 @@ int main(){
     device->createBuffer("_WINDOW", 4 * sizeof(int));
     device->createBuffer("_FRAME", 4 * sizeof(double));
 
-    cl_mem retBuffer = clCreateBuffer(device->context, CL_MEM_READ_WRITE, size * sizeof(int), NULL, &err);
-    cl_mem _WINDOW = clCreateBuffer(device->context, CL_MEM_READ_WRITE, 4 * sizeof(int), NULL, &err);
-    cl_mem _FRAME = clCreateBuffer(device->context, CL_MEM_READ_WRITE, 4 * sizeof(double), NULL, &err);
-
     err = device->createKernel("value");
     // cl_kernel valueKern = clCreateKernel(device->program, "value", &err);
     err = clSetKernelArg(*(device->getKernel("value")), 0, sizeof(cl_mem), (void*)device->getBuffer("_RETURN"));
@@ -86,8 +82,8 @@ int main(){
             
         
         /*START GPU CODE*/
-        clEnqueueWriteBuffer(device->commandQueue, *(device->getBuffer("_WINDOW")), CL_TRUE, 0, 4 * sizeof(int),  WINDOW, 0, NULL, NULL);
-        clEnqueueWriteBuffer(device->commandQueue, *(device->getBuffer("_FRAME")), CL_TRUE, 0, 4 * sizeof(double),  FRAME, 0, NULL, NULL);
+        err = device->enqueueWriteBuffer("_WINDOW", 4 * sizeof(int),  WINDOW, true);
+        err = device->enqueueWriteBuffer("_FRAME", 4 * sizeof(double),  FRAME, true);
         err = clSetKernelArg(*(device->getKernel("value")), 4, sizeof(cl_int), (void*)&MAX_ITER);
 
         ofstream myImage("mandelbrotGPU.ppm");
@@ -112,7 +108,7 @@ int main(){
             clFinish(device->commandQueue);
 
             /* Copy results from the memory buffer */
-            err = clEnqueueReadBuffer(device->commandQueue, *(device->getBuffer("_RETURN")), CL_TRUE, 0, size * sizeof(int), retMem, 0, NULL, NULL);
+            err = device->enqueueReadBuffer("_RETURN", size * sizeof(int),  retMem, true);
             for(int i = 0; i < size; ++i){
                 myImage << 0 << ' ' << retMem[i]/2 << ' ' << retMem[i] << "\n";
             }

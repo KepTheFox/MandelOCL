@@ -14,24 +14,24 @@
 #include <map>
 
 // template <typename T>;
-class clBuffers{
-    int createBuffer(std::string name, size_t size);
-    int writeBuffer(std::string name, size_t size, void *data);
-    int readBuffer(std::string name, size_t size, void *data);
+// class clBuffers{
+//     int createBuffer(std::string name, size_t size);
+//     int writeBuffer(std::string name, size_t size, void *data);
+//     int readBuffer(std::string name, size_t size, void *data);
 
-    std::map<std::string, cl_mem> buffers;
-};
+//     std::map<std::string, cl_mem> buffers;
+// };
 
-class clKernels{
-    /*Functions*/
-    int addKernel();
-    int setKernelArg();
-    int enqueueNDRangeKernel(std::string kernelName);
-    void printKernels();
+// class clKernels{
+//     /*Functions*/
+//     int addKernel();
+//     int setKernelArg();
+//     int enqueueNDRangeKernel(std::string kernelName);
+//     void printKernels();
 
 
-    std::map<std::string, cl_kernel> kernels;
-};
+//     std::map<std::string, cl_kernel> kernels;
+// };
 
 class clDevice{
 public:
@@ -42,15 +42,16 @@ public:
     void loadKernelsFromFile(char *filename);
     bool checkAvailable(){return deviceAvailable;}
 
-    int createBuffer(std::string name, size_t size);
-    cl_mem *getBuffer(std::string name);
-    int writeBuffer(std::string name, size_t size, void *data);
-    int readBuffer(std::string name, size_t size, void *data);
+    int createBuffer(char *name, size_t size);
+    cl_mem *getBuffer(char *name);
+
+    int enqueueWriteBuffer(char *name, size_t size, void *data, bool blocking);
+    int enqueueReadBuffer(char *name, size_t size, void *data, bool blocking);
 
     int createKernel(char *name);
     cl_kernel *getKernel(char *name);
     int setKernelArg(char *kernelName, char *bufferName, int argNum);
-    int enqueueNDRangeKernel(std::string kernelName);
+    int enqueueNDRangeKernel(char *kernelName);
     void printKernels();
 
 
@@ -70,7 +71,7 @@ public:
     char deviceName[156];
     char deviceVendor[156];
 
-    std::map<std::string, cl_mem> buffers;
+    std::map<char *, cl_mem> buffers;
 
     std::map<char *, cl_kernel> kernels;
 };
