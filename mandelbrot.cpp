@@ -9,10 +9,10 @@ using namespace std;
 
 // #define MAX_ITER 100
 
-cl_int WIDTH = 1200;
-cl_int HEIGHT = 1200;
+cl_int WIDTH = 9200;
+cl_int HEIGHT = 9200;
 cl_double ZOOM = 1;
-cl_int MAX_ITER = 100;
+cl_int MAX_ITER = 500;
 int size = (int)WIDTH * (int)HEIGHT;
 
 double X = -0.55;
@@ -64,14 +64,14 @@ int main(){
     err = clSetKernelArg(*(device->getKernel("value")), 2, sizeof(cl_mem), (void*)device->getBuffer("_FRAME"));
     err = clSetKernelArg(*(device->getKernel("value")), 3, sizeof(cl_double), (void*)&ZOOM);
     printf("%d\n", err);
-    Window<int> scr(0, 1200, 0, 1200);
+    Window<int> scr(0, WIDTH, 0, HEIGHT);
     // Window<double> fract(-2.2, 1.2, -1.7, 1.7);
     Window<double> fract(-1, 1, -1, 1);
     
     fract.move(X, Y);
     fract.zoom(ZOOM);
-    while(fract.getZoom() < 32){
-        fract.zoom(2);
+    while(fract.getZoom() < 2){
+        fract.zoom(16);
         // int err = runGPU(cli, scr, fract);
         // std::cout << "ZOOM LEVEL: " << fract.getZoom() << '\n';
         printf("ZOOM LEVEL: %f\n", fract.getZoom());
