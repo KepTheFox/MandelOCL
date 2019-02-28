@@ -9,8 +9,8 @@ using namespace std;
 
 // #define MAX_ITER 100
 
-cl_int WIDTH = 9200;
-cl_int HEIGHT = 9200;
+cl_int WIDTH = 1200;
+cl_int HEIGHT = 1200;
 cl_double ZOOM = 1;
 cl_int MAX_ITER = 500;
 int size = (int)WIDTH * (int)HEIGHT;
@@ -59,6 +59,9 @@ int main(){
 
     err = device->createKernel("value");
     // cl_kernel valueKern = clCreateKernel(device->program, "value", &err);
+    // device->setKernelArg("value", "_RETURN", 0);
+    // device->setKernelArg("value", "_WINDOW", 1);
+    // device->setKernelArg("value", "_FRAME", 2);
     err = clSetKernelArg(*(device->getKernel("value")), 0, sizeof(cl_mem), (void*)device->getBuffer("_RETURN"));
     err = clSetKernelArg(*(device->getKernel("value")), 1, sizeof(cl_mem), (void*)device->getBuffer("_WINDOW"));
     err = clSetKernelArg(*(device->getKernel("value")), 2, sizeof(cl_mem), (void*)device->getBuffer("_FRAME"));

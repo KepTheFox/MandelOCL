@@ -72,7 +72,13 @@ int clDevice::createBuffer(char *name, size_t size){
 }
 
 cl_mem *clDevice::getBuffer(char *name){
-    return &(this->buffers[name]);
+    std::map<char *, cl_mem>::iterator it = this->buffers.find(name);
+    if(it != this->buffers.end()){
+        return &(it->second);
+    }
+    else{
+        return NULL;
+    }
 }
 
 
@@ -96,7 +102,7 @@ cl_kernel *clDevice::getKernel(char *name){
 int clDevice::setKernelArg(char *kernelName, char *bufferName, int argNum){
     cl_int err;
     cl_kernel *kern = this->getKernel(kernelName);
-    err = clSetKernelArg(*kern, 0, sizeof(cl_mem), (void*)this->getBuffer(bufferName));
+    err = clSetKernelArg(*kern, argNum, sizeof(cl_mem), (void*)this->getBuffer(bufferName));
     return (int)err;
 }
 
@@ -109,6 +115,12 @@ int clDevice::enqueueWriteBuffer(char *name, size_t size, void *data, bool block
 int clDevice::enqueueReadBuffer(char *name, size_t size, void *data, bool blocking){
     cl_int err;
     err = clEnqueueReadBuffer(this->commandQueue, *(this->getBuffer(name)), blocking, 0, size,  data, 0, NULL, NULL);
+    return err;
+}
+
+int clDevice::enqueueNDRangeKernel(char *name, size_t *global, size_t *local){
+    cl_int err;
+    err = clEnqueueNDRangeKernel(this->commandQueue, *(this->getKernel(name)), 1, 0, global, local, 0, NULL, &(this->ev));
     return err;
 }
 

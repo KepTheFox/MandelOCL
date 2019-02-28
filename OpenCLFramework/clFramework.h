@@ -51,7 +51,7 @@ public:
     int createKernel(char *name);
     cl_kernel *getKernel(char *name);
     int setKernelArg(char *kernelName, char *bufferName, int argNum);
-    int enqueueNDRangeKernel(char *kernelName);
+    int enqueueNDRangeKernel(char *kernelName, size_t *global, size_t *local);
     void printKernels();
 
 
@@ -70,6 +70,8 @@ public:
     cl_uint deviceMaxComputeUnits;
     char deviceName[156];
     char deviceVendor[156];
+
+    cl_event ev;
 
     std::map<char *, cl_mem> buffers;
 
